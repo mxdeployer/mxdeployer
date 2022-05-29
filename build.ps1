@@ -23,6 +23,6 @@ foreach ($target in $targets) {
     New-Item -ItemType Directory $dest | Out-Null
 
     foreach ($command in $commands) {
-        go build -o $dest $command
+        go build -o $dest -ldflags="-s -w" $command
     }
 }
