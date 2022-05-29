@@ -13,3 +13,10 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# should be commented out eventually, but I want it here for now
+#.vscode
+
+/dist
+github.com/
+**/.DS_Store
