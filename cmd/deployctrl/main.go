@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"github.com/mxdeployer/mxdeployer/internal/core"
 )
 
 func main() {
-	fmt.Println("Hello world!")
+	queue := core.NewArtifactQueue("")
+	queue.Send()
 }
