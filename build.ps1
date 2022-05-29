@@ -14,6 +14,9 @@ if (-not $target) {
 
 if ((Test-Path ./dist)) { Remove-Item -r -fo ./dist }
 
+$saveGOOS = $env:GOOS
+$saveGOARCH = $env:GOARCH
+
 foreach ($target in $targets) {
     $goenv = $target.Split("/")
     $env:GOOS = $goenv[0]
@@ -26,3 +29,6 @@ foreach ($target in $targets) {
         go build -o $dest -ldflags="-s -w" $command
     }
 }
+
+$env:GOOS = $saveGOOS
+$env:GOARCH = $saveGOARCH
