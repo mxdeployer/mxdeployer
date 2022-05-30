@@ -1,9 +1,9 @@
 package models
 
 type Artifact struct {
-	url string
+	Url string
 }
 
 func NewArtifact(url string) *Artifact {
-	return &Artifact{url: url}
+	return &Artifact{Url: url}
 }
