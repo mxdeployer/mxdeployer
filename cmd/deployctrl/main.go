@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mxdeployer/mxdeployer/internal/commands"
 	"github.com/mxdeployer/mxdeployer/internal/core"
 )
 
@@ -14,17 +15,23 @@ func showHelp() {
 	fmt.Println()
 	fmt.Println("Commands:")
 	fmt.Println()
-	fmt.Println("  setup")
-	fmt.Println("      Create underlying storage entities.")
+	fmt.Println("  setup-host <org> <az-storage-con-str> <az-service-bus-con-str> [host]")
+	fmt.Println("      Setup a new deployment host. Creates a new artifact subscription.")
+	fmt.Println()
+	fmt.Println("  teardown-host")
+	fmt.Println("      Deletes any existing artifact subscriptions.")
+	fmt.Println()
+	fmt.Println("  init")
+	fmt.Println("      Initialize an empty deployment notification JSON document.")
 	fmt.Println()
 	fmt.Println("  send <json-filename>")
-	fmt.Println("      Send an artifact-ready notification.")
+	fmt.Println("      Send an deployment notification.")
 	fmt.Println()
-	fmt.Println("  receive")
-	fmt.Println("      Wait for a single artifact-ready notification and show it.")
+	fmt.Println("  receive [host]")
+	fmt.Println("      Waits for a single deployment notification.")
 	fmt.Println()
-	fmt.Println("  drain")
-	fmt.Println("      Drain the artifact queue.")
+	fmt.Println("  drain [host]")
+	fmt.Println("      Drains an artifact subscription of all deployment notifications.")
 	fmt.Println()
 	fmt.Println("  purge")
 	fmt.Println("      Purge all artifacts from blob storage.")
@@ -41,12 +48,30 @@ func main() {
 		return
 	}
 
-	args := os.Args[1:]
+	argQueue := core.NewStringQueue(os.Args[1:])
+
 	var cmd core.Command
 
-	switch cmdArg := args[0]; cmdArg {
-	case "setup":
-		cmd = core.NewSetupCommand()
+	switch cmdArg := argQueue.Dequeue(); cmdArg {
+
+	case "setup-host":
+
+		osHostName, err := os.Hostname()
+
+		if err != nil {
+			osHostName = ""
+		}
+
+		org := argQueue.Dequeue()
+		azscs := argQueue.Dequeue()
+		azsbcs := argQueue.Dequeue()
+		host := argQueue.DequeueOrDefault(osHostName)
+
+		cmd = commands.NewSetupHost(org, azscs, azsbcs, host)
+
+	case "init":
+		cmd = commands.NewInit()
+
 	default:
 		println("Unknown command.")
 		println()
@@ -54,5 +79,9 @@ func main() {
 		return
 	}
 
-	cmd.Run()
+	err := cmd.Run()
+
+	if err != nil {
+		fmt.Println(err)
+	}
 }
