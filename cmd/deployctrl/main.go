@@ -55,20 +55,7 @@ func main() {
 	switch cmdArg := argQueue.Dequeue(); cmdArg {
 
 	case "setup-host":
-
-		osHostName, err := os.Hostname()
-
-		if err != nil {
-			osHostName = ""
-		}
-
-		org := argQueue.Dequeue()
-		azscs := argQueue.Dequeue()
-		azsbcs := argQueue.Dequeue()
-		host := argQueue.DequeueOrDefault(osHostName)
-
-		cmd = commands.NewSetupHost(org, azscs, azsbcs, host)
-
+		cmd = commands.NewSetupHost(argQueue)
 	case "init":
 		cmd = commands.NewInit()
 

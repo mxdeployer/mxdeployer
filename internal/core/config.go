@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -19,7 +20,16 @@ func NewConfig(org string, ascs string, asbcs string, host string) *Config {
 }
 
 func LoadConfig() Config {
-	panic("Not implemented yet!")
+
+	content, err := ioutil.ReadFile(ConfigPath())
+
+	if err != nil {
+		return *NewConfig("", "", "", "")
+	} else {
+		var config Config
+		json.Unmarshal(content, &config)
+		return config
+	}
 }
 
 func SaveConfig(config Config) error {

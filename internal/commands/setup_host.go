@@ -1,8 +1,10 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus/admin"
 	"github.com/mxdeployer/mxdeployer/internal/core"
 )
 
@@ -10,11 +12,20 @@ type SetupHost struct {
 	config core.Config
 }
 
-func NewSetupHost(org string, ascs string, asbcs string, host string) core.Command {
-	return &SetupHost{*core.NewConfig(org, ascs, asbcs, host)}
+func NewSetupHost(argQueue *core.StringQueue) core.Command {
+
+	cfg := core.LoadConfig()
+
+	cfg.Org = argQueue.DequeueOrDefault(cfg.Org)
+	cfg.AzStorageConStr = argQueue.DequeueOrDefault(cfg.AzStorageConStr)
+	cfg.AzServiceBusConStr = argQueue.DequeueOrDefault(cfg.AzServiceBusConStr)
+	cfg.Host = argQueue.DequeueOrDefault(cfg.Host)
+
+	return &SetupHost{cfg}
 }
 
 func (cmd *SetupHost) Run() error {
+
 	err := core.SaveConfig(cmd.config)
 
 	if err != nil {
@@ -22,6 +33,54 @@ func (cmd *SetupHost) Run() error {
 	}
 
 	fmt.Printf("Configuration saved to: %s\n", core.ConfigPath())
+
+	client, err := admin.NewClientFromConnectionString(cmd.config.AzServiceBusConStr, nil)
+
+	if err != nil {
+		return err
+	}
+
+	const topic = "sbt-mxdeployer"
+	sub := cmd.config.Host
+
+	response, _ := client.GetSubscription(context.Background(), topic, sub, nil)
+
+	if response == nil {
+
+		fmt.Println("Creating new subscription...")
+
+		ttl := "P14D"
+		subOptions := &admin.CreateSubscriptionOptions{
+			Properties: &admin.SubscriptionProperties{
+				DefaultMessageTimeToLive: &ttl,
+			}}
+
+		_, err = client.CreateSubscription(context.Background(), topic, sub, subOptions)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("OK.")
+		fmt.Println("Creating correlation filter for host...")
+
+		rule := "match_host"
+
+		ruleOptions := &admin.CreateRuleOptions{
+			Name: &rule,
+			Filter: &admin.CorrelationFilter{
+				Subject: &sub,
+			},
+		}
+
+		_, err := client.CreateRule(context.Background(), topic, sub, ruleOptions)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("OK.")
+	}
 
 	return nil
 }
