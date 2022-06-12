@@ -62,6 +62,8 @@ func main() {
 		cmd = commands.NewInit()
 	case "send":
 		cmd = commands.NewSend(argQueue)
+	case "receive":
+		cmd = commands.NewReceive(argQueue)
 
 	default:
 		println("Unknown command.")

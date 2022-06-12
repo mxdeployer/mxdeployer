@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
 	"github.com/mxdeployer/mxdeployer/internal/models"
@@ -39,17 +39,53 @@ func (queue *NotificationQueue) Send(notification models.DeploymentNotification)
 		return err
 	}
 
-	err = sender.SendMessage(context.Background(), &azservicebus.Message{Body: jsonBytes, Subject: &queue.host}, nil)
-
-	if err != nil {
+	if sender.SendMessage(context.Background(), &azservicebus.Message{Body: jsonBytes, Subject: &queue.host}, nil); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (queue *NotificationQueue) Receive() {
-	fmt.Println("Receiving...")
+func (queue *NotificationQueue) Receive(timeout int) (*models.DeploymentNotification, error) {
+
+	if err := queue.prepclient(); err != nil {
+		return nil, err
+	}
+
+	rcvr, err := queue.client.NewReceiverForSubscription(SbTopic, queue.host, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Duration(timeout)*time.Second)
+	defer cancel()
+
+	msgs, err := rcvr.ReceiveMessages(ctx, 1, nil)
+
+	if err != nil {
+		if err != context.DeadlineExceeded {
+			return nil, err
+		}
+	}
+
+	if len(msgs) > 0 {
+
+		msg := msgs[0]
+
+		var not models.DeploymentNotification
+		if err := json.Unmarshal(msg.Body, &not); err != nil {
+			return nil, err
+		}
+
+		if err := rcvr.CompleteMessage(context.TODO(), msg, nil); err != nil {
+			return nil, err
+		}
+
+		return &not, nil
+	}
+
+	return nil, nil
 }
 
 func (queue *NotificationQueue) prepclient() error {

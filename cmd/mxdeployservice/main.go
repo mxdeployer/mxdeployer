@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/mxdeployer/mxdeployer/internal/core"
+	"fmt"
 )
 
 func main() {
-	queue := core.NewNotificationQueue("", "")
-	queue.Receive()
+	fmt.Println("Need a queue... and some messages...")
 }

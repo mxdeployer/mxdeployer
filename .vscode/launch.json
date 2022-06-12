@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/deployctrl",
-            "args": ["send", "${workspaceFolder}/json/sample-msg.json"]
+            "args": ["receive"]
         },
         {
             "name": "mxdeployservice",
