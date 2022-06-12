@@ -56,6 +56,8 @@ func main() {
 
 	case "setup-host":
 		cmd = commands.NewSetupHost(argQueue)
+	case "teardown-host":
+		cmd = commands.NewTeardownHost()
 	case "init":
 		cmd = commands.NewInit()
 
