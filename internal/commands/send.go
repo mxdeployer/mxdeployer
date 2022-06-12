@@ -1,12 +1,12 @@
 package commands
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
 	"github.com/mxdeployer/mxdeployer/internal/core"
+	"github.com/mxdeployer/mxdeployer/internal/models"
 )
 
 type Send struct {
@@ -21,26 +21,22 @@ func (cmd *Send) Run() error {
 
 	config := core.LoadConfig()
 
-	jsonBytes, err := ioutil.ReadFile(cmd.jsonPath)
+	queue := core.NewNotificationQueue(config.AzServiceBusConStr, config.Host)
 
-	if err != nil {
-		return err
-	}
-	client, err := azservicebus.NewClientFromConnectionString(config.AzServiceBusConStr, nil)
-
-	if err != nil {
-		return err
-	}
-
-	sender, err := client.NewSender(core.SbTopic, nil)
+	content, err := ioutil.ReadFile(cmd.jsonPath)
 
 	if err != nil {
 		return err
 	}
 
-	// TODO: move all of this into notification_queue
+	var notification models.DeploymentNotification
+	err = json.Unmarshal(content, &notification)
 
-	err = sender.SendMessage(context.Background(), &azservicebus.Message{Body: jsonBytes, Subject: &config.Host}, nil)
+	if err != nil {
+		return err
+	}
+
+	err = queue.Send(notification)
 
 	if err != nil {
 		return err

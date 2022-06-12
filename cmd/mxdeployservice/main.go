@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	queue := core.NewNotificationQueue("")
+	queue := core.NewNotificationQueue("", "")
 	queue.Receive()
 }
