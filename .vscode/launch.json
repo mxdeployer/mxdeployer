@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/deployctrl",
-            "args": ["teardown-host"]
+            "args": ["send", "${workspaceFolder}/json/sample-msg.json"]
         },
         {
             "name": "mxdeployservice",

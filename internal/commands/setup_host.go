@@ -41,10 +41,9 @@ func (cmd *SetupHost) Run() error {
 		return err
 	}
 
-	const topic = "sbt-mxdeployer"
 	sub := cmd.config.Host
 
-	response, _ := client.GetSubscription(context.Background(), topic, sub, nil)
+	response, _ := client.GetSubscription(context.Background(), core.SbTopic, sub, nil)
 
 	if response == nil {
 
@@ -55,7 +54,7 @@ func (cmd *SetupHost) Run() error {
 				DefaultMessageTimeToLive: to.Ptr("P14D"),
 			}}
 
-		_, err = client.CreateSubscription(context.Background(), topic, sub, subOptions)
+		_, err = client.CreateSubscription(context.Background(), core.SbTopic, sub, subOptions)
 
 		if err != nil {
 			return err
@@ -65,13 +64,19 @@ func (cmd *SetupHost) Run() error {
 		fmt.Println("Creating correlation filter for host...")
 
 		ruleOptions := &admin.CreateRuleOptions{
-			Name: to.Ptr("match_host"),
+			Name: to.Ptr(core.SbTopicMatchHostRule),
 			Filter: &admin.CorrelationFilter{
 				Subject: &sub,
 			},
 		}
 
-		_, err := client.CreateRule(context.Background(), topic, sub, ruleOptions)
+		_, err = client.CreateRule(context.Background(), core.SbTopic, sub, ruleOptions)
+
+		if err != nil {
+			return err
+		}
+
+		_, err = client.DeleteRule(context.Background(), core.SbTopic, sub, "$Default", nil)
 
 		if err != nil {
 			return err

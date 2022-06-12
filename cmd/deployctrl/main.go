@@ -60,6 +60,8 @@ func main() {
 		cmd = commands.NewTeardownHost()
 	case "init":
 		cmd = commands.NewInit()
+	case "send":
+		cmd = commands.NewSend(argQueue)
 
 	default:
 		println("Unknown command.")

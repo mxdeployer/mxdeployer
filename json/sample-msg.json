@@ -1,0 +1,10 @@
+{
+    "url": "https://stmxdeployertest.blob.core.windows.net/artifacts/mxdeployer-sample%2Ftags%2Fv1.9-stage%2Fbuild-1815922c35e.zip",
+    "ref": "refs/tags/v1.9-stage",
+    "host": "Andys-MacBook-Pro-16.local",
+    "appName": "mxdeployer-sample",
+    "environment": {},
+    "appSecrets": {
+        "message": "stnerap ruoy tcepser"
+    }
+}
