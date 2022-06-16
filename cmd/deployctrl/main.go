@@ -64,6 +64,11 @@ func main() {
 		cmd = commands.NewSend(argQueue)
 	case "receive":
 		cmd = commands.NewReceive(argQueue)
+	case "drain":
+		cmd = commands.NewDrain(argQueue)
+	case "deploy":
+		println("Not implemented yet!")
+		return
 
 	default:
 		println("Unknown command.")

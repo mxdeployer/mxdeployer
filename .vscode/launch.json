@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/deployctrl",
-            "args": ["receive"]
+            "args": ["drain"]
         },
         {
             "name": "mxdeployservice",
