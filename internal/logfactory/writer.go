@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-)
 
-// TODO: Switch to lumberjack for file logging https://github.com/natefinch/lumberjack
+	"gopkg.in/natefinch/lumberjack.v2"
+)
 
 func NewLogWriter() (io.Writer, error) {
 
@@ -30,13 +30,13 @@ func NewLogWriter() (io.Writer, error) {
 		}
 	}
 
-	logFile, err := os.Create(logpath)
-
-	if err != nil {
-		return nil, err
+	rollinglog := lumberjack.Logger{
+		Filename:  logpath,
+		MaxAge:    31,
+		LocalTime: true,
 	}
 
 	fmt.Printf("Logs written to: %s\n", logpath)
 
-	return io.MultiWriter(logFile, os.Stdout), nil
+	return io.MultiWriter(&rollinglog, os.Stdout), nil
 }
