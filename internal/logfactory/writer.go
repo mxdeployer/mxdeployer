@@ -5,14 +5,22 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
-// TODO: Make new writer type that support io.WriteCloser, close logFile
+// TODO: Switch to lumberjack for file logging https://github.com/natefinch/lumberjack
 
 func NewLogWriter() (io.Writer, error) {
 
-	home, _ := os.UserHomeDir()
-	logpath := filepath.Join(home, ".local/share/mxdeployer/logs/mxdeployer.log")
+	var baselogpath string
+
+	if runtime.GOOS == "windows" {
+		baselogpath = os.Getenv("ProgramData")
+	} else {
+		baselogpath = os.ExpandEnv("$HOME/.local/share")
+	}
+
+	logpath := filepath.Join(baselogpath, "/mxdeployer/logs/mxdeployer.log")
 	logdir := filepath.Dir(logpath)
 
 	if _, err := os.Stat(logdir); os.IsNotExist(err) {
