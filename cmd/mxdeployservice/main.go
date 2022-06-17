@@ -1,9 +1,19 @@
 package main
 
 import (
-	"fmt"
+	"log"
+
+	"github.com/mxdeployer/mxdeployer/internal/logfactory"
 )
 
 func main() {
-	fmt.Println("Need a queue... and some messages...")
+	logwriter, err := logfactory.NewLogWriter()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.SetOutput(logwriter)
+
+	log.Println("Shutting down!")
 }
