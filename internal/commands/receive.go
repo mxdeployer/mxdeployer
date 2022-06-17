@@ -21,24 +21,24 @@ func (cmd *Receive) Run() error {
 
 	queue := core.NewNotificationQueue(cmd.constr, cmd.host)
 
-	not, err := queue.Receive(10)
+	dn, err := queue.Receive(10)
 
 	if err != nil {
 		return nil
 	}
 
-	if not == nil {
+	if dn == nil {
 		fmt.Println("No messages waiting!")
 		return nil
 	}
 
-	notJson, err := json.MarshalIndent(not, "", "    ")
+	dnJson, err := json.MarshalIndent(dn, "", "    ")
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(notJson))
+	fmt.Println(string(dnJson))
 
 	return nil
 }

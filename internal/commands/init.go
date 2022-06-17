@@ -17,14 +17,14 @@ type Init struct {
 
 func (cmd *Init) Run() error {
 
-	not := models.NewDeploymentNotification()
-	notJson, err := json.MarshalIndent(not, "", "    ")
+	dn := models.NewDeploymentNotification()
+	dnJson, err := json.MarshalIndent(dn, "", "    ")
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(notJson))
+	fmt.Println(string(dnJson))
 
 	return nil
 }

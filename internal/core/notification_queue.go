@@ -15,6 +15,8 @@ type NotificationQueue struct {
 	client *azservicebus.Client
 }
 
+type HandleNotificationFunc func(dn models.DeploymentNotification)
+
 func NewNotificationQueue(constr string, host string) *NotificationQueue {
 	return &NotificationQueue{constr, host, nil}
 }
@@ -46,6 +48,11 @@ func (queue *NotificationQueue) Send(notification models.DeploymentNotification)
 	return nil
 }
 
+func (queue *NotificationQueue) Process(ctx context.Context, handler HandleNotificationFunc) error {
+
+	return nil
+}
+
 func (queue *NotificationQueue) Receive(timeout int) (*models.DeploymentNotification, error) {
 
 	if err := queue.prepclient(); err != nil {
@@ -73,8 +80,8 @@ func (queue *NotificationQueue) Receive(timeout int) (*models.DeploymentNotifica
 
 		msg := msgs[0]
 
-		var not models.DeploymentNotification
-		if err := json.Unmarshal(msg.Body, &not); err != nil {
+		var dn models.DeploymentNotification
+		if err := json.Unmarshal(msg.Body, &dn); err != nil {
 			return nil, err
 		}
 
@@ -82,7 +89,7 @@ func (queue *NotificationQueue) Receive(timeout int) (*models.DeploymentNotifica
 			return nil, err
 		}
 
-		return &not, nil
+		return &dn, nil
 	}
 
 	return nil, nil

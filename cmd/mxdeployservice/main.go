@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
-	"time"
 
+	"github.com/mxdeployer/mxdeployer/internal/core"
 	"github.com/mxdeployer/mxdeployer/internal/logfactory"
+	"github.com/mxdeployer/mxdeployer/internal/models"
 	"github.com/mxdeployer/mxdeployer/internal/service"
 )
 
@@ -21,7 +23,8 @@ func main() {
 }
 
 type mxdeployservice struct {
-	ticker *time.Ticker
+	queue  core.NotificationQueue
+	cancel context.CancelFunc
 }
 
 func (s *mxdeployservice) Name() string {
@@ -32,20 +35,24 @@ func (s *mxdeployservice) Start() {
 
 	log.Println("Starting...")
 
-	s.ticker = time.NewTicker(1 * time.Second)
-	go s.tick()
+	cfg := core.LoadConfig()
+
+	s.queue = *core.NewNotificationQueue(cfg.AzServiceBusConStr, cfg.Host)
+
+	ctx := context.Background()
+	var cancelCtx context.Context
+	cancelCtx, s.cancel = context.WithCancel(ctx)
+
+	go s.queue.Process(cancelCtx, s.NotificationReceived)
 }
 
 func (s *mxdeployservice) Stop() {
 
 	log.Println("Stopping...")
 
-	s.ticker.Stop()
+	s.cancel()
 }
 
-func (s *mxdeployservice) tick() {
-
-	for range s.ticker.C {
-		log.Println("Tick!")
-	}
+func (s *mxdeployservice) NotificationReceived(dn models.DeploymentNotification) {
+	log.Println("We got one!")
 }
