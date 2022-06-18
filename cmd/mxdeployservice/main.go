@@ -63,6 +63,15 @@ func (s *mxdeployservice) NotificationReceived(dn models.DeploymentNotification)
 	go func(dn models.DeploymentNotification) {
 		log.Printf("We got one - %s %s\n", dn.AppName, dn.Ref)
 		defer s.wg.Done()
+
+		// TODO: Download artifact from dn.Url
+		// TODO: Run stop script (if present)
+		// TODO: Extract artifact to destination
+		// TODO: Deploy system environment variables
+		// TODO: Deploy app secrets
+		// TODO: Run install script (if present)
+		// TODO: Run start script (if present)
+
 	}(dn)
 
 }
