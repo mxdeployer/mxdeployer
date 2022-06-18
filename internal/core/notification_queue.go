@@ -66,6 +66,9 @@ func (queue *NotificationQueue) Process(ctx context.Context, handler HandleNotif
 		msgs, err := rcvr.ReceiveMessages(ctx, 16, nil)
 
 		if err != nil {
+			if err == context.Canceled {
+				return
+			}
 			log.Println(err)
 		}
 
@@ -76,9 +79,13 @@ func (queue *NotificationQueue) Process(ctx context.Context, handler HandleNotif
 				log.Println(err)
 			}
 
+			// Should this be executed as a goroutine?
 			handler(dn)
 
 			if err := rcvr.CompleteMessage(ctx, msg, nil); err != nil {
+				if err == context.Canceled {
+					return
+				}
 				log.Println(err)
 			}
 		}

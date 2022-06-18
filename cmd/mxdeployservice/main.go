@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"sync"
 
 	"github.com/mxdeployer/mxdeployer/internal/core"
 	"github.com/mxdeployer/mxdeployer/internal/logfactory"
@@ -25,6 +27,7 @@ func main() {
 type mxdeployservice struct {
 	queue  core.NotificationQueue
 	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 func (s *mxdeployservice) Name() string {
@@ -33,7 +36,7 @@ func (s *mxdeployservice) Name() string {
 
 func (s *mxdeployservice) Start() {
 
-	log.Println("Starting...")
+	log.Printf("Starting... %d\n", os.Getpid())
 
 	cfg := core.LoadConfig()
 
@@ -49,10 +52,17 @@ func (s *mxdeployservice) Start() {
 func (s *mxdeployservice) Stop() {
 	log.Println("Stopping...")
 	s.cancel()
+	log.Println("Waiting for deployments...")
+	s.wg.Wait()
 	log.Println("Stopped.")
 }
 
 func (s *mxdeployservice) NotificationReceived(dn models.DeploymentNotification) {
 
-	log.Printf("We got one - %s %s\n", dn.AppName, dn.Ref)
+	s.wg.Add(1)
+	go func(dn models.DeploymentNotification) {
+		log.Printf("We got one - %s %s\n", dn.AppName, dn.Ref)
+		defer s.wg.Done()
+	}(dn)
+
 }
