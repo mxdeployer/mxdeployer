@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
@@ -48,9 +49,47 @@ func (queue *NotificationQueue) Send(notification models.DeploymentNotification)
 	return nil
 }
 
-func (queue *NotificationQueue) Process(ctx context.Context, handler HandleNotificationFunc) error {
+// TODO: Need some way to handle errors better - backoff?
+func (queue *NotificationQueue) Process(ctx context.Context, handler HandleNotificationFunc) {
 
-	return nil
+	log.Println("Preparing client subscription...")
+	if err := queue.prepclient(); err != nil {
+		log.Println(err)
+	}
+
+	log.Println("Creating receiver...")
+	rcvr, err := queue.client.NewReceiverForSubscription(SbTopic, queue.host, nil)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	for {
+		log.Println("Receiving...")
+		msgs, err := rcvr.ReceiveMessages(ctx, 16, nil)
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Printf("Message(s) received: %d\n", len(msgs))
+
+		for _, msg := range msgs {
+
+			var dn models.DeploymentNotification
+			if err := json.Unmarshal(msg.Body, &dn); err != nil {
+				log.Println(err)
+			}
+
+			handler(dn)
+
+			if err := rcvr.CompleteMessage(ctx, msg, nil); err != nil {
+				log.Println(err)
+			}
+
+			log.Println("Message completed.")
+		}
+	}
 }
 
 func (queue *NotificationQueue) Receive(timeout int) (*models.DeploymentNotification, error) {

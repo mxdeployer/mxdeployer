@@ -37,22 +37,26 @@ func (s *mxdeployservice) Start() {
 
 	cfg := core.LoadConfig()
 
+	log.Println("Creating notification queue...")
 	s.queue = *core.NewNotificationQueue(cfg.AzServiceBusConStr, cfg.Host)
 
 	ctx := context.Background()
 	var cancelCtx context.Context
 	cancelCtx, s.cancel = context.WithCancel(ctx)
 
+	log.Println("Queue process starting...")
 	go s.queue.Process(cancelCtx, s.NotificationReceived)
+	log.Println("Started.")
 }
 
 func (s *mxdeployservice) Stop() {
 
 	log.Println("Stopping...")
-
 	s.cancel()
+	log.Println("Stopped.")
 }
 
 func (s *mxdeployservice) NotificationReceived(dn models.DeploymentNotification) {
-	log.Println("We got one!")
+
+	log.Printf("We got one - %s %s\n", dn.AppName, dn.Ref)
 }
