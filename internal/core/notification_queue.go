@@ -52,12 +52,10 @@ func (queue *NotificationQueue) Send(notification models.DeploymentNotification)
 // TODO: Need some way to handle errors better - backoff?
 func (queue *NotificationQueue) Process(ctx context.Context, handler HandleNotificationFunc) {
 
-	log.Println("Preparing client subscription...")
 	if err := queue.prepclient(); err != nil {
 		log.Println(err)
 	}
 
-	log.Println("Creating receiver...")
 	rcvr, err := queue.client.NewReceiverForSubscription(SbTopic, queue.host, nil)
 
 	if err != nil {
@@ -65,14 +63,11 @@ func (queue *NotificationQueue) Process(ctx context.Context, handler HandleNotif
 	}
 
 	for {
-		log.Println("Receiving...")
 		msgs, err := rcvr.ReceiveMessages(ctx, 16, nil)
 
 		if err != nil {
 			log.Println(err)
 		}
-
-		log.Printf("Message(s) received: %d\n", len(msgs))
 
 		for _, msg := range msgs {
 
@@ -86,8 +81,6 @@ func (queue *NotificationQueue) Process(ctx context.Context, handler HandleNotif
 			if err := rcvr.CompleteMessage(ctx, msg, nil); err != nil {
 				log.Println(err)
 			}
-
-			log.Println("Message completed.")
 		}
 	}
 }
