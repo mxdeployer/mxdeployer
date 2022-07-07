@@ -71,6 +71,7 @@ func (s *mxdeployservice) NotificationReceived(dn models.DeploymentNotification)
 		// TODO: Deploy app secrets
 		// TODO: Run install script (if present)
 		// TODO: Run start script (if present)
+		// TODO: Need some kind of notification sent for success/failure
 
 	}(dn)
 
